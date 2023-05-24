@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:padding="20dp">
+
+        <TextView
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:id="@+id/tv_title"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:text="Time picker" />
+
+        <Button
+            android:id="@+id/btn_history"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            app:layout_constraintTop_toTopOf="@id/tv_title"
+            app:layout_constraintBottom_toBottomOf="@id/tv_title"
+            app:layout_constraintEnd_toStartOf="@id/btn_alarm"
+            style="?attr/materialIconButtonStyle"
+            app:icon="@drawable/ic_history" />
+
+        <Button
+            android:id="@+id/btn_alarm"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            app:layout_constraintTop_toTopOf="@id/btn_history"
+            app:layout_constraintBottom_toBottomOf="@id/btn_history"
+            app:layout_constraintEnd_toEndOf="parent"
+            style="?attr/materialIconButtonStyle"
+            app:icon="@drawable/ic_alarm" />
+
+        <TextView
+            android:paddingTop="15dp"
+            android:paddingBottom="10dp"
+            android:id="@+id/tv_info"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            app:layout_constraintTop_toBottomOf="@id/btn_alarm"
+            android:text="WiFi information, 7 Days expiry, 30MBPS Connected" />
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tl_hour"
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:padding="5dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_info"
+            app:layout_constraintEnd_toStartOf="@id/tl_minute">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/te_hour"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceHeadline4"
+                android:maxLength="2"
+                android:inputType="number"
+                android:imeOptions="actionNext"
+                android:nextFocusForward="@+id/te_minute"
+                android:text="03" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tl_minute"
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:padding="5dp"
+            app:layout_constraintTop_toBottomOf="@id/tv_info"
+            app:layout_constraintEnd_toStartOf="@id/tl_second"
+            app:layout_constraintStart_toEndOf="@id/tl_hour">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/te_minute"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceHeadline4"
+                android:maxLength="2"
+                android:inputType="number"
+                android:imeOptions="actionNext"
+                android:nextFocusForward="@+id/te_second"
+                android:text="00" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tl_second"
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:padding="5dp"
+            app:layout_constraintTop_toBottomOf="@id/tv_info"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tl_minute">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/te_second"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceHeadline4"
+                android:maxLength="2"
+                android:inputType="number"
+                android:text="00" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/tv_hour"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@id/tl_hour"
+            app:layout_constraintEnd_toEndOf="@id/tl_hour"
+            app:layout_constraintTop_toBottomOf="@id/tl_hour"
+            android:text="hour" />
+
+        <TextView
+            android:id="@+id/tv_minute"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@id/tl_minute"
+            app:layout_constraintEnd_toEndOf="@id/tl_minute"
+            app:layout_constraintTop_toBottomOf="@id/tl_minute"
+            android:text="Minute" />
+
+        <TextView
+            android:id="@+id/tv_second"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@id/tl_second"
+            app:layout_constraintEnd_toEndOf="@id/tl_second"
+            app:layout_constraintTop_toBottomOf="@id/tl_second"
+            android:text="Second" />
+
+
+        <Button
+            android:id="@+id/btn_set"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            style="@style/Widget.Material3.Button"
+            android:layout_marginTop="15dp"
+            app:layout_constraintTop_toBottomOf="@id/tv_minute"
+            app:layout_constraintStart_toStartOf="@id/tv_hour"
+            app:layout_constraintEnd_toEndOf="@id/tv_second"
+            android:text="Start" />
+
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            style="?attr/materialButtonOutlinedStyle"
+            app:layout_constraintStart_toStartOf="@id/btn_set"
+            app:layout_constraintEnd_toEndOf="@id/btn_set"
+            app:layout_constraintTop_toBottomOf="@id/btn_set"
+            android:layout_marginTop="8dp"
+            android:text="Cancel" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>
