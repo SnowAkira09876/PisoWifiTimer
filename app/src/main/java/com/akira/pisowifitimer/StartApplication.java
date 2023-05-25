@@ -17,7 +17,11 @@ public class StartApplication extends Application {
     super.onCreate();
     createNotificationChannel();
 
-    EventBus.builder().addIndex(new TimeItemModel()).installDefaultEventBus();
+    EventBus.builder()
+        .logNoSubscriberMessages(false)
+        .sendNoSubscriberEvent(false)
+        .addIndex(new TimeItemModel())
+        .installDefaultEventBus();
   }
 
   private void createNotificationChannel() {

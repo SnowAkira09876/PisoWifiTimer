@@ -1,44 +1,41 @@
 package com.akira.pisowifitimer.bottomsheet.timepicker;
 
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
-import android.os.CountDownTimer;
-import android.os.Handler;
-import android.os.Looper;
-import androidx.core.app.NotificationCompat;
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 import androidx.work.ForegroundInfo;
-import androidx.work.WorkerParameters;
+import androidx.work.ListenableWorker;
 import androidx.work.ListenableWorker.Result;
-import androidx.work.Worker;
+import androidx.work.WorkerParameters;
 import com.akira.pisowifitimer.R;
 import com.akira.pisowifitimer.StartApplication;
 import com.akira.pisowifitimer.pojos.TimeEvent;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.Disposable;
+import java.util.concurrent.TimeUnit;
 import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
-public class TimeWorker extends Worker {
-  public static final String KEY_DURATION_HOURS = "duration_hours";
-  public static final String KEY_DURATION_MINUTES = "duration_minutes";
-  public static final String KEY_DURATION_SECONDS = "duration_seconds";
-  public static final int NOTIFICATION_ID = 1;
-
-  private long countdownMillis;
-  private final Handler handler = new Handler(Looper.getMainLooper());
+public class TimeWorker extends ListenableWorker {
   private NotificationManager notificationManager;
   private NotificationCompat.Builder builder;
   private final TimeEvent event = new TimeEvent();
-  private boolean isTimerRunning = true;
+  private String wifi;
+  private static final int RUNNING_NOTIFID = 0, FINISHED_NOTIFID = 1;
+  private int hours, minutes, seconds;
+  private Disposable disposable;
 
   public TimeWorker(@NonNull Context context, @NonNull WorkerParameters params) {
     super(context, params);
-    int hours = getInputData().getInt(KEY_DURATION_HOURS, 0);
-    int minutes = getInputData().getInt(KEY_DURATION_MINUTES, 0);
-    int seconds = getInputData().getInt(KEY_DURATION_SECONDS, 0);
-    countdownMillis = ((hours * 60 * 60) + (minutes * 60) + seconds) * 1000;
+    wifi = getInputData().getString(TimerKeys.WIFI_NAME.get());
+    hours = getInputData().getInt(TimerKeys.DURATION_HOURS.get(), 0);
+    minutes = getInputData().getInt(TimerKeys.DURATION_MINUTES.get(), 0);
+    seconds = getInputData().getInt(TimerKeys.DURATION_SECONDS.get(), 0);
+
     notificationManager =
         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -47,88 +44,107 @@ public class TimeWorker extends Worker {
 
   @NonNull
   @Override
-  public Result doWork() {
-    EventBus.getDefault().register(this);
-
+  public ListenableFuture<Result> startWork() {
     startForeground();
-    handler.post(
-        () ->
-            new CountDownTimer(countdownMillis, 1000) {
-              public void onTick(long millisUntilFinished) {
-                if (isTimerRunning) {
-                  builder.setContentText(formatTime(millisUntilFinished));
-                  updateNotification(builder);
 
-                  event.setIsBusy(true);
-                  EventBus.getDefault().post(event);
-                } else {
-                  notificationManager.cancel(NOTIFICATION_ID);
-                  cancel();
-                  
-                  event.setIsBusy(false);
-                  EventBus.getDefault().post(event);
-                }
-              }
+    Single<String> single =
+        Single.create(
+            emitter -> {
+              long countdownMillis =
+                  hours * TimeUnit.HOURS.toMillis(1)
+                      + minutes * TimeUnit.MINUTES.toMillis(1)
+                      + seconds * TimeUnit.SECONDS.toMillis(1);
 
-              public void onFinish() {
-                builder.setContentText("Time's up!");
-                builder.clearActions();
-                builder.setOngoing(false);
-                updateNotification(builder);
+              long startTimeMillis = System.currentTimeMillis();
 
-                event.setIsBusy(false);
-                EventBus.getDefault().post(event);
-              }
-            }.start());
+              Disposable disposable =
+                  Observable.interval(1, TimeUnit.SECONDS)
+                      .map(
+                          elapsedTicks ->
+                              countdownMillis - (System.currentTimeMillis() - startTimeMillis))
+                      .takeWhile(remainingMillis -> remainingMillis > 0)
+                      .map(
+                          remainingMillis -> {
+                            long remainingHours = TimeUnit.MILLISECONDS.toHours(remainingMillis);
+                            long remainingMinutes =
+                                TimeUnit.MILLISECONDS.toMinutes(remainingMillis) % 60;
+                            long remainingSeconds =
+                                TimeUnit.MILLISECONDS.toSeconds(remainingMillis) % 60;
 
-    return Result.success();
+                            return String.format(
+                                "%d hours, %d minutes, %d seconds",
+                                remainingHours, remainingMinutes, remainingSeconds);
+                          })
+                      .doOnNext(
+                          countdownText -> {
+                            builder.setContentText(countdownText);
+                            updateNotification(RUNNING_NOTIFID, builder);
+
+                            event.setTime(countdownText);
+                            event.setStatus(TimerKeys.RUNNING);
+                            EventBus.getDefault().post(event);
+                          })
+                      .doOnComplete(
+                          () -> {
+                            builder.setContentText(TimerKeys.FINISHED.get());
+                            builder.setOngoing(false);
+                            updateNotification(FINISHED_NOTIFID, builder);
+
+                            event.setStatus(TimerKeys.FINISHED);
+                            EventBus.getDefault().post(event);
+
+                            emitter.onSuccess(TimerKeys.FINISHED.get());
+                          })
+                      .subscribe();
+
+              emitter.setCancellable(() -> disposable.dispose());
+            });
+
+    SettableFuture<Result> future = SettableFuture.create();
+
+    disposable =
+        single
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                result -> {
+                  future.set(Result.success());
+                },
+                error -> {
+                  future.set(Result.failure());
+                });
+
+    return future;
   }
 
   @Override
   public void onStopped() {
+    disposable.dispose();
+
+    builder.setContentText(TimerKeys.STOPPED.get());
+    builder.setOngoing(false);
+    updateNotification(FINISHED_NOTIFID, builder);
+
+    event.setStatus(TimerKeys.STOPPED);
+    EventBus.getDefault().post(event);
+
     super.onStopped();
-    EventBus.getDefault().unregister(this);
-  }
-
-  @Subscribe(threadMode = ThreadMode.BACKGROUND)
-  public void onTimeEvent(TimeEvent event) {
-    if (event.getIsBusy()) isTimerRunning = true;
-    else {
-      isTimerRunning = false;
-    }
-  }
-
-  private String formatTime(long millis) {
-    int seconds = (int) (millis / 1000) % 60;
-    int minutes = (int) ((millis / (1000 * 60)) % 60);
-    int hours = (int) ((millis / (1000 * 60 * 60)) % 24);
-
-    return String.format("%02d:%02d:%02d %s", hours, minutes, seconds, "remaining");
   }
 
   private void startForeground() {
-    ForegroundInfo foregroundInfo = new ForegroundInfo(NOTIFICATION_ID, builder.build());
+    ForegroundInfo foregroundInfo = new ForegroundInfo(RUNNING_NOTIFID, builder.build());
     setForegroundAsync(foregroundInfo);
   }
 
-  private void updateNotification(NotificationCompat.Builder b) {
-    notificationManager.notify(NOTIFICATION_ID, b.build());
+  private void updateNotification(int id, NotificationCompat.Builder b) {
+    notificationManager.notify(id, b.build());
   }
 
   private NotificationCompat.Builder getNotificationBuilder(Context context) {
-    PendingIntent cancelPendingIntent =
-        PendingIntent.getBroadcast(
-            context,
-            0,
-            new Intent(context, TimerBroadcast.class).setAction("CANCEL_WORKER"),
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
     return new NotificationCompat.Builder(getApplicationContext(), StartApplication.CHANNEL_ID)
-        .setContentTitle("Connected to Wi-Fi")
+        .setContentTitle("Connected to " + wifi)
         .setSmallIcon(R.drawable.ic_alarm)
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         .setOngoing(true)
-        .setUsesChronometer(true)
-        .addAction(R.drawable.ic_alarm, "Cancel", cancelPendingIntent);
+        .setUsesChronometer(true);
   }
 }
