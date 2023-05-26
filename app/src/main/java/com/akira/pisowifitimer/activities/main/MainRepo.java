@@ -17,7 +17,7 @@ public class MainRepo {
   public void registerNetworkCallback() {
     wifiData.registerNetworkCallback();
   }
-  
+
   public void unregisterNetworkCallback() {
     wifiData.unregisterNetworkCallback();
   }

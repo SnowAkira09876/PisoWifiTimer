@@ -15,7 +15,7 @@ public class MainViewModel extends ViewModel {
   public Observable<String> observableWifiGateway() {
     return repo.observableWifiGateway();
   }
-
+  
   public void registerNetworkCallback() {
     repo.registerNetworkCallback();
   }

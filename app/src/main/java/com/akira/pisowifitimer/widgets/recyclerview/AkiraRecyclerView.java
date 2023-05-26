@@ -47,13 +47,10 @@ public class AkiraRecyclerView extends RecyclerView {
     super.setAdapter(adapter);
 
     if (adapter != null) adapter.registerAdapterDataObserver(observer);
-
-    checkIfEmpty();
   }
 
   public void setEmptyView(View emptyView) {
     this.emptyView = emptyView;
-    checkIfEmpty();
   }
 
   private void checkIfEmpty() {

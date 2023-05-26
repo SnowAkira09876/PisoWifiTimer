@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_height="match_parent"
     android:layout_width="match_parent">
-    
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
@@ -113,6 +113,21 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:hint="Amount"
+                android:padding="5dp"
+                android:id="@+id/tl_amount">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:inputType="number"
+                    android:id="@+id/te_amount" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <Button
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
@@ -132,5 +147,5 @@
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-    
+
 </androidx.core.widget.NestedScrollView>

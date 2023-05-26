@@ -14,18 +14,22 @@ import javax.inject.Inject;
 
 public class WifiData {
   private ConnectivityManager connectivityManager;
-  private final PublishSubject<String> networkSubject = PublishSubject.create();
+  private final PublishSubject<String> gatewaySubject = PublishSubject.create();
   private final ConnectivityManager.NetworkCallback callback =
       new ConnectivityManager.NetworkCallback() {
         @Override
         public void onAvailable(Network network) {
           super.onAvailable(network);
           LinkProperties linkProperties = connectivityManager.getLinkProperties(network);
-          for (RouteInfo route : linkProperties.getRoutes()) {
-            if (route.hasGateway()) {
-              InetAddress gateway = route.getGateway();
-              networkSubject.onNext("https://" + gateway.getHostAddress());
-              break;
+          NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);
+
+          if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+            for (RouteInfo route : linkProperties.getRoutes()) {
+              if (route.hasGateway()) {
+                InetAddress gateway = route.getGateway();
+                gatewaySubject.onNext("https://" + gateway.getHostAddress());
+                break;
+              }
             }
           }
         }
@@ -38,7 +42,7 @@ public class WifiData {
   }
 
   public Observable<String> observableWifiGateway() {
-    return networkSubject;
+    return gatewaySubject;
   }
 
   public void registerNetworkCallback() {
