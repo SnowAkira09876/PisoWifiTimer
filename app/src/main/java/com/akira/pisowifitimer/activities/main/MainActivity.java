@@ -1,9 +1,12 @@
 package com.akira.pisowifitimer.activities.main;
 
-import android.content.DialogInterface;
+import android.annotation.TargetApi;
+import android.content.Intent;
+import android.net.Uri;
 import android.net.http.SslError;
 import android.os.*;
 import android.view.View;
+import androidx.core.splashscreen.SplashScreen;
 import android.webkit.JsResult;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
@@ -22,7 +25,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import dagger.hilt.android.AndroidEntryPoint;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import javax.inject.Inject;
@@ -33,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
   private FloatingActionButton fab;
   private TimePickerBottomSheet timePickerBottomSheet;
   private MainViewModel viewModel;
-  private MainViewModelFactory factory;
+  private MainFactory factory;
   private WebView webview;
   private TextView tv;
   private Disposable disposable;
@@ -42,23 +44,31 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
+    SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
     super.onCreate(savedInstanceState);
     binding = ActivityMainBinding.inflate(getLayoutInflater());
     timePickerBottomSheet = new TimePickerBottomSheet();
 
-    factory = new MainViewModelFactory(wifiData);
+    factory = new MainFactory(wifiData);
     viewModel = new ViewModelProvider(this, factory).get(MainViewModel.class);
 
     onsetViewBinding();
     onsetViews();
+
+    showInfo();
+  }
+
+  @Override
+  protected void onStart() {
+    super.onStart();
     onsetObservers();
   }
 
   @Override
-  protected void onDestroy() {
+  protected void onStop() {
+    super.onStop();
     viewModel.unregisterNetworkCallback();
     disposable.dispose();
-    super.onDestroy();
   }
 
   private void onsetViewBinding() {
@@ -87,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
             }
           }
 
+          @TargetApi(23)
           @Override
           public void onReceivedError(
               WebView webview, WebResourceRequest request, WebResourceError error) {
@@ -108,11 +119,10 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage(message)
                 .setPositiveButton(
                     android.R.string.ok,
-                    new DialogInterface.OnClickListener() {
-                      public void onClick(DialogInterface dialog, int which) {
-                        result.confirm();
-                      }
+                    (dialog, which) -> {
+                      result.confirm();
                     })
+                .setNegativeButton(android.R.string.cancel, (dialog, which) -> result.cancel())
                 .setCancelable(false)
                 .create()
                 .show();
@@ -143,5 +153,19 @@ public class MainActivity extends AppCompatActivity {
                 });
 
     viewModel.registerNetworkCallback();
+  }
+
+  private void showInfo() {
+    Snackbar.make(binding.getRoot(), "Made with love by Akira Snow", Snackbar.LENGTH_INDEFINITE)
+        .setAction(
+            "Follow",
+            v -> {
+              Intent intent =
+                  new Intent(
+                      Intent.ACTION_VIEW,
+                      Uri.parse("https://www.facebook.com/profile.php?id=100087796637987"));
+              startActivity(intent);
+            })
+        .show();
   }
 }

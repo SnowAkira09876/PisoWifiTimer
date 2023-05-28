@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">PisoWifi Timer</string>
+    <string name="history_name">History</string>
     <string name="akira_notification_channel">PisoWifi Timer</string>
     <string name="akira_notification_channel_description">Countdown for PisoWifi Timer</string>
+    <string name="akira_fab_behavior">com.akira.pisowifitimer.widgets.behaviors.FabScrollingBehavior</string>
 </resources>

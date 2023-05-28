@@ -13,7 +13,7 @@
     />
 
     <TextView
-        android:drawableTop="@drawable/ic_alarm"
+        android:drawableTop="@drawable/ic_wifi"
         android:drawablePadding="8dp"
         android:textAppearance="?attr/textAppearanceTitleLarge"
         android:id="@+id/empty_view"

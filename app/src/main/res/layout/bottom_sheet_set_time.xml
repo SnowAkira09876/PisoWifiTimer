@@ -17,7 +17,19 @@
             android:paddingBottom="5dp"
             android:paddingTop="5dp"
             android:id="@+id/tv_title"
-            android:text="Time picker" />
+            android:text="Time picker"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            app:icon="@drawable/ic_alarm"
+            app:layout_constraintTop_toTopOf="@id/tv_title"
+            app:layout_constraintEnd_toStartOf="@id/btn_history"
+            style="?attr/materialIconButtonStyle"
+            app:layout_constraintBottom_toBottomOf="@id/tv_title"
+            android:id="@+id/btn_alarm" />
 
         <Button
             android:layout_height="wrap_content"
@@ -34,10 +46,10 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             app:icon="@drawable/ic_stop"
-            app:layout_constraintTop_toTopOf="@id/btn_history"
+            app:layout_constraintTop_toTopOf="@id/tv_title"
             app:layout_constraintEnd_toEndOf="parent"
             style="?attr/materialIconButtonStyle"
-            app:layout_constraintBottom_toBottomOf="@id/btn_history"
+            app:layout_constraintBottom_toBottomOf="@id/tv_title"
             android:id="@+id/btn_stop" />
 
         <LinearLayout
@@ -49,84 +61,73 @@
             app:layout_constraintTop_toBottomOf="@id/tv_title"
             android:id="@+id/ll_et">
 
-            <com.google.android.material.textfield.TextInputLayout
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:id="@+id/tv_title_slider_hour"
+                android:text="Hour" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slider_hour"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:hint="Wi-Fi name"
-                android:padding="5dp"
-                android:id="@+id/tl_wifi"
-                app:helperTextEnabled="true">
+                android:valueFrom="0"
+                android:valueTo="23"
+                android:stepSize="1" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:layout_height="wrap_content"
-                    android:layout_width="match_parent"
-                    android:inputType="textPersonName"
-                    android:id="@+id/te_wifi" />
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:id="@+id/tv_title_slider_minute"
+                android:text="Minute" />
 
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slider_minute"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:hint="Hours"
-                android:padding="5dp"
-                android:id="@+id/tl_hour">
+                android:valueFrom="0"
+                android:valueTo="59"
+                android:stepSize="1" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:layout_height="wrap_content"
-                    android:layout_width="match_parent"
-                    android:maxLength="3"
-                    android:inputType="number"
-                    android:id="@+id/te_hour" />
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:id="@+id/tv_title_slider_second"
+                android:text="Second"
+            />
 
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slider_second"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:hint="Minutes"
-                android:padding="5dp"
-                android:id="@+id/tl_minute">
+                android:valueFrom="0"
+                android:valueTo="59"
+                android:stepSize="1" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:layout_height="wrap_content"
-                    android:layout_width="match_parent"
-                    android:maxLength="2"
-                    android:inputType="number"
-                    android:id="@+id/te_minute" />
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:id="@+id/tv_title_slider_amount"
+                android:text="Amount" />
 
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slider_amount"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:hint="Seconds"
-                android:padding="5dp"
-                android:id="@+id/tl_second">
+                android:valueFrom="0"
+                android:valueTo="100"
+                android:stepSize="5" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:layout_height="wrap_content"
-                    android:layout_width="match_parent"
-                    android:maxLength="2"
-                    android:inputType="number"
-                    android:id="@+id/te_second" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
+            <TextView
+                android:text="No running task"
                 android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:hint="Amount"
-                android:padding="5dp"
-                android:id="@+id/tl_amount">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:layout_height="wrap_content"
-                    android:layout_width="match_parent"
-                    android:inputType="number"
-                    android:id="@+id/te_amount" />
-
-            </com.google.android.material.textfield.TextInputLayout>
+                android:layout_width="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:id="@+id/tv_time"/>
 
             <Button
                 android:layout_height="wrap_content"

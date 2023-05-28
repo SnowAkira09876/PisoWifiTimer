@@ -1,10 +1,10 @@
 package com.akira.pisowifitimer.pojos;
 
-import com.akira.pisowifitimer.bottomsheet.timepicker.TimerKeys;
+import com.akira.pisowifitimer.bottomsheet.timepicker.TimeStatus;
 
 public class TimeEvent {
   private String time;
-  private TimerKeys status;
+  private TimeStatus status;
 
   public TimeEvent() {}
 
@@ -16,11 +16,11 @@ public class TimeEvent {
     this.time = time;
   }
 
-  public TimerKeys getStatus() {
+  public TimeStatus getStatus() {
     return this.status;
   }
 
-  public void setStatus(TimerKeys status) {
+  public void setStatus(TimeStatus status) {
     this.status = status;
   }
 }

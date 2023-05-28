@@ -1,40 +1,42 @@
 package com.akira.pisowifitimer.bottomsheet.timepicker;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
-import android.text.InputFilter;
+import android.provider.Settings;
 import android.view.LayoutInflater;
-import android.view.ViewGroup;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
+import androidx.work.Constraints;
 import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
-import com.akira.pisowifitimer.activities.stats.StatsActivity;
+import com.akira.pisowifitimer.StartApplication;
+import com.akira.pisowifitimer.activities.history.HistoryActivity;
 import com.akira.pisowifitimer.data.room.AkiraRoom;
 import com.akira.pisowifitimer.databinding.BottomSheetSetTimeBinding;
 import com.akira.pisowifitimer.pojos.TimeEvent;
-import com.akira.pisowifitimer.pojos.TimeHistoryModel;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.slider.Slider;
 import dagger.hilt.android.AndroidEntryPoint;
-import java.util.Arrays;
-import java.util.Calendar;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
 import org.greenrobot.eventbus.EventBus;
-import androidx.work.Constraints;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 @AndroidEntryPoint
 public class TimePickerBottomSheet extends BottomSheetDialogFragment {
   private BottomSheetSetTimeBinding binding;
-  private TextInputLayout tl_wifi, tl_hour, tl_minute, tl_second;
-  private TextInputEditText te_wifi, te_hour, te_minute, te_second;
-  private Button btn_set, btn_cancel, btn_stop, btn_history;
+  private Slider slider_hour, slider_minute, slider_second, slider_amount;
+  private Button btn_set, btn_cancel, btn_stop, btn_history, btn_alarm;
+  private TextView tv_time;
   private WorkManager workManager;
   private OneTimeWorkRequest request;
   private static final String TIMER_WORK_TAG = "timer_work";
@@ -65,8 +67,8 @@ public class TimePickerBottomSheet extends BottomSheetDialogFragment {
 
   @Override
   public void onStop() {
-    EventBus.getDefault().unregister(this);
     super.onStop();
+    EventBus.getDefault().unregister(this);
   }
 
   @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
@@ -74,105 +76,96 @@ public class TimePickerBottomSheet extends BottomSheetDialogFragment {
     switch (event.getStatus()) {
       case RUNNING:
         btn_stop.setEnabled(true);
-        tl_wifi.setHelperText(event.getTime());
+        tv_time.setText(event.getTime());
         break;
 
       case FINISHED:
         btn_stop.setEnabled(false);
-        tl_wifi.setHelperText(event.getStatus().get());
+        tv_time.setText("Timer finished!");
         TimeEvent stickyEvent = EventBus.getDefault().getStickyEvent(TimeEvent.class);
         if (stickyEvent != null) EventBus.getDefault().removeStickyEvent(stickyEvent);
         break;
 
       case STOPPED:
         btn_stop.setEnabled(false);
-        tl_wifi.setHelperText(event.getStatus().get());
+        tv_time.setText("Timer stopped!");
         break;
     }
   }
 
   private void onsetViewBinding() {
-    tl_wifi = binding.tlWifi;
-    tl_hour = binding.tlHour;
-    tl_minute = binding.tlMinute;
-    tl_second = binding.tlSecond;
-
-    te_wifi = binding.teWifi;
-    te_hour = binding.teHour;
-    te_minute = binding.teMinute;
-    te_second = binding.teSecond;
+    slider_hour = binding.sliderHour;
+    slider_minute = binding.sliderMinute;
+    slider_second = binding.sliderSecond;
+    slider_amount = binding.sliderAmount;
 
     btn_set = binding.btnSet;
     btn_cancel = binding.btnCancel;
     btn_stop = binding.btnStop;
     btn_history = binding.btnHistory;
+    btn_alarm = binding.btnAlarm;
+    
+    tv_time = binding.tvTime;
   }
 
   private void onsetViews() {
-    te_minute.setFilters(new InputFilter[] {new InputFilterTime(1, 60)});
-    te_second.setFilters(new InputFilter[] {new InputFilterTime(1, 60)});
+    slider_hour.setLabelFormatter(value -> String.format("%sh", String.valueOf((int) value)));
+    slider_minute.setLabelFormatter(value -> String.format("%sm", String.valueOf((int) value)));
+    slider_second.setLabelFormatter(value -> String.format("%ss", String.valueOf((int) value)));
+    slider_amount.setLabelFormatter(value -> String.format("₱%s", String.valueOf((int) value)));
 
     btn_set.setOnClickListener(
         v -> {
-          String wifi = te_wifi.getText().toString().trim();
-          String hour = te_hour.getText().toString();
-          String minute = te_minute.getText().toString();
-          String second = te_second.getText().toString();
+          String hour = String.valueOf((int) slider_hour.getValue());
+          String minute = String.valueOf((int) slider_minute.getValue());
+          String second = String.valueOf((int) slider_second.getValue());
+          String amount = String.valueOf((int) slider_amount.getValue());
 
-          if (wifi.isEmpty()) tl_wifi.setError("Wi-Fi is empty");
-          if (hour.isEmpty()) tl_hour.setError("Hour is empty");
-          if (minute.isEmpty()) tl_minute.setError("Minute is empty");
-          if (second.isEmpty()) tl_second.setError("Second is empty");
+          SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+          String currentDate = dateFormat.format(new Date());
+          String formattedTime =
+              String.format("%s hours, %s minutes, %s seconds", hour, minute, second);
 
-          boolean allTimeFilled =
-              Arrays.stream(new String[] {wifi, hour, minute, second}).allMatch(s -> !s.isEmpty());
+          Constraints constraints =
+              new Constraints.Builder()
+                  // .setRequiredNetworkType(NetworkType.UNMETERED)
+                  .build();
 
-          if (allTimeFilled) {
-            tl_wifi.setErrorEnabled(false);
-            tl_hour.setErrorEnabled(false);
-            tl_minute.setErrorEnabled(false);
-            tl_second.setErrorEnabled(false);
+          Data data =
+              new Data.Builder()
+                  .putInt(TimeWorker.HOUR, Integer.parseInt(hour))
+                  .putInt(TimeWorker.MINUTE, Integer.parseInt(minute))
+                  .putInt(TimeWorker.SECOND, Integer.parseInt(second))
+                  .putInt(TimeWorker.AMOUNT, Integer.parseInt(amount))
+                  .putString(TimeWorker.TIME, formattedTime)
+                  .putString(TimeWorker.DATE, currentDate)
+                  .build();
 
-            Calendar calendar = Calendar.getInstance();
-            int year = calendar.get(Calendar.YEAR);
-            int month = calendar.get(Calendar.MONTH) + 1;
-            int day = calendar.get(Calendar.DAY_OF_MONTH);
+          request =
+              new OneTimeWorkRequest.Builder(TimeWorker.class)
+                  .setInputData(data)
+                  .setConstraints(constraints)
+                  .build();
 
-            String currentDate = String.format("%04d-%02d-%02d", year, month, day);
-            String currentTime =
-                String.format("%s hours, %s minutes, %s seconds", hour, minute, second);
-
-            Constraints constraints =
-                new Constraints.Builder()
-                    // .setRequiredNetworkType(NetworkType.UNMETERED)
-                    .build();
-
-            Data data =
-                new Data.Builder()
-                    .putString(TimerKeys.WIFI.get(), wifi)
-                    .putInt(TimerKeys.HOUR.get(), Integer.parseInt(hour))
-                    .putInt(TimerKeys.MINUTE.get(), Integer.parseInt(minute))
-                    .putInt(TimerKeys.SECOND.get(), Integer.parseInt(second))
-                    .putString(TimerKeys.TIME.get(), currentTime)
-                    .putString(TimerKeys.DATE.get(), currentDate)
-                    .build();
-
-            request =
-                new OneTimeWorkRequest.Builder(TimeWorker.class)
-                    .setInputData(data)
-                    .setConstraints(constraints)
-                    .build();
-
-            workManager.enqueueUniqueWork(TIMER_WORK_TAG, ExistingWorkPolicy.REPLACE, request);
-            dismiss();
-          }
+          workManager.enqueueUniqueWork(TIMER_WORK_TAG, ExistingWorkPolicy.REPLACE, request);
+          dismiss();
         });
 
     btn_history.setOnClickListener(
-        v -> startActivity(new Intent(requireActivity(), StatsActivity.class)));
+        v -> startActivity(new Intent(requireActivity(), HistoryActivity.class)));
 
     btn_stop.setOnClickListener(v -> workManager.cancelUniqueWork(TIMER_WORK_TAG));
 
     btn_cancel.setOnClickListener(v -> dismiss());
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      btn_alarm.setOnClickListener(
+          v -> {
+            Intent channel = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
+            channel.putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().getPackageName());
+            channel.putExtra(Settings.EXTRA_CHANNEL_ID, StartApplication.ALARM);
+            startActivity(channel);
+          });
+    } else btn_alarm.setVisibility(View.GONE);
   }
 }

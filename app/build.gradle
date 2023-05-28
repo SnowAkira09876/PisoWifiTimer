@@ -21,9 +21,19 @@ android {
             }
         }        
     }
+    
+    signingConfigs {
+		release {
+			keyAlias 'AkiraSnow'
+			keyPassword 'Akira00'
+			storeFile file("/storage/emulated/0/AndroidIDEProjects/AkiraSnow00.jks")
+			storePassword 'Akira00'
+		}
+	}
 
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -44,6 +54,7 @@ dependencies {
     //UI
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.core:core-splashscreen:1.0.0-beta02'
     
     //Work
     implementation 'androidx.work:work-runtime:2.8.1'

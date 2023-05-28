@@ -11,7 +11,13 @@ public class MainRepo {
   }
 
   public Observable<String> observableWifiGateway() {
-    return wifiData.observableWifiGateway();
+    return wifiData
+        .observableWifi()
+        .flatMap(
+            isWifi -> {
+              if (isWifi) return wifiData.observableWifiGateway();
+              else return Observable.empty();
+            });
   }
 
   public void registerNetworkCallback() {

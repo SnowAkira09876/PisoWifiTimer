@@ -8,47 +8,54 @@ import androidx.work.ForegroundInfo;
 import androidx.work.ListenableWorker.Result;
 import androidx.work.WorkerParameters;
 import androidx.work.rxjava3.RxWorker;
-import com.akira.pisowifitimer.R;
 import com.akira.pisowifitimer.StartApplication;
 import com.akira.pisowifitimer.data.room.AkiraRoom;
 import com.akira.pisowifitimer.hilt.AppEntryPoint;
 import com.akira.pisowifitimer.pojos.TimeEvent;
-import com.akira.pisowifitimer.pojos.TimeHistoryModel;
+import com.akira.pisowifitimer.pojos.HistoryModel;
 import dagger.hilt.android.EntryPointAccessors;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.greenrobot.eventbus.EventBus;
+import com.akira.pisowifitimer.R;
 
 public class TimeWorker extends RxWorker {
+  private NotificationCompat.Builder timer, alarm;
   private NotificationManager notificationManager;
-  private NotificationCompat.Builder builder;
   private final TimeEvent event = new TimeEvent();
-  private static final int NOTIFID = 0;
-  private int hours, minutes, seconds;
-  private String time, date, wifi;
+  private static final int TIMER_ID = 0, ALARM_ID = 1;
+  private int hours, minutes, seconds, amount;
+  private String time, date;
   private AkiraRoom room;
+  public static final String HOUR = "hour",
+      MINUTE = "minute",
+      SECOND = "second",
+      AMOUNT = "amount",
+      TIME = "time",
+      DATE = "date";
 
   public TimeWorker(@NonNull Context context, @NonNull WorkerParameters params) {
     super(context, params);
-    time = getInputData().getString(TimerKeys.TIME.get());
-    date = getInputData().getString(TimerKeys.DATE.get());
-    wifi = getInputData().getString(TimerKeys.WIFI.get());
+    time = getInputData().getString(TIME);
+    date = getInputData().getString(DATE);
 
-    hours = getInputData().getInt(TimerKeys.HOUR.get(), 0);
-    minutes = getInputData().getInt(TimerKeys.MINUTE.get(), 0);
-    seconds = getInputData().getInt(TimerKeys.SECOND.get(), 0);
-
-    notificationManager =
-        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-    builder = getNotificationBuilder(context);
+    amount = getInputData().getInt(AMOUNT, 0);
+    hours = getInputData().getInt(HOUR, 0);
+    minutes = getInputData().getInt(MINUTE, 0);
+    seconds = getInputData().getInt(SECOND, 0);
 
     AppEntryPoint entryPoint =
         EntryPointAccessors.fromApplication(getApplicationContext(), AppEntryPoint.class);
     room = entryPoint.getAkiraRoom();
+
+    notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+    timer = getNotificationBuilder(context, "Timer", StartApplication.TIMER);
+    alarm = getNotificationBuilder(context, "Alarm", StartApplication.ALARM);
   }
 
   @NonNull
@@ -80,36 +87,39 @@ public class TimeWorker extends RxWorker {
                             TimeUnit.MILLISECONDS.toSeconds(remainingMillis) % 60;
 
                         return String.format(
+                            Locale.US,
                             "%d hours, %d minutes, %d seconds",
-                            remainingHours, remainingMinutes, remainingSeconds);
+                            remainingHours,
+                            remainingMinutes,
+                            remainingSeconds);
                       })
                   .doOnNext(
                       countdownText -> {
-                        builder.setContentText(countdownText);
-                        updateNotification(builder);
+                        timer.setContentText(countdownText);
+                        notificationManager.notify(TIMER_ID, timer.build());
 
                         event.setTime(countdownText);
-                        event.setStatus(TimerKeys.RUNNING);
+                        event.setStatus(TimeStatus.RUNNING);
                         EventBus.getDefault().post(event);
                       })
                   .doOnComplete(
                       () -> {
-                        builder.setContentText(TimerKeys.FINISHED.get());
-                        builder.setOngoing(false);
-                        updateNotification(builder);
+                        alarm.setContentText("Timer finished!");
+                        alarm.setOngoing(false);
+                        notificationManager.notify(ALARM_ID, alarm.build());
+                        notificationManager.cancel(TIMER_ID);
 
-                        event.setStatus(TimerKeys.FINISHED);
+                        event.setStatus(TimeStatus.FINISHED);
                         EventBus.getDefault().postSticky(event);
                         EventBus.getDefault().post(event);
 
-                        emitter.onSuccess(Result.success());
-
-                        TimeHistoryModel model = new TimeHistoryModel();
+                        HistoryModel model = new HistoryModel();
                         model.setDate(date);
                         model.setTime(time);
-                        model.setWifi(wifi);
+                        model.setAmount(amount);
 
-                        room.getTimeHistoryDAO().insert(model);
+                        room.getHistoryDAO().insert(model);
+                        emitter.onSuccess(Result.success());
                       })
                   .doOnError(e -> emitter.onError(e))
                   .subscribeOn(AndroidSchedulers.mainThread())
@@ -121,31 +131,27 @@ public class TimeWorker extends RxWorker {
 
   @Override
   public void onStopped() {
-    builder.setContentText(TimerKeys.STOPPED.get());
-    builder.setOngoing(false);
-    updateNotification(builder);
-
-    event.setStatus(TimerKeys.STOPPED);
-    EventBus.getDefault().post(event);
-
     super.onStopped();
+    timer.setContentText("Timer stopped!");
+    timer.setOngoing(false);
+    notificationManager.notify(TIMER_ID, timer.build());
+
+    event.setStatus(TimeStatus.STOPPED);
+    EventBus.getDefault().post(event);
   }
 
   private void startForeground() {
-    ForegroundInfo foregroundInfo = new ForegroundInfo(NOTIFID, builder.build());
+    ForegroundInfo foregroundInfo = new ForegroundInfo(TIMER_ID, timer.build());
     setForegroundAsync(foregroundInfo);
   }
 
-  private void updateNotification(NotificationCompat.Builder b) {
-    notificationManager.notify(NOTIFID, b.build());
-  }
-
-  private NotificationCompat.Builder getNotificationBuilder(Context context) {
-    return new NotificationCompat.Builder(getApplicationContext(), StartApplication.CHANNEL_ID)
-        .setContentTitle("Connected to " + wifi)
+  private NotificationCompat.Builder getNotificationBuilder(
+      Context context, String title, String channel) {
+    return new NotificationCompat.Builder(context, channel)
+        .setContentTitle(title)
         .setSmallIcon(R.drawable.ic_alarm)
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         .setOngoing(true)
-        .setUsesChronometer(true);
+        .setShowWhen(true);
   }
 }
