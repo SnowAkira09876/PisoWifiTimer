@@ -1,1 +1,1 @@
-RxJava, Room, MVVM and WorkManager.
+RxJava, Room, MVVM, WorkManager and Hilt.
