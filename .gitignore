@@ -1,3 +1,4 @@
 .androidide
 .gradle
+.ssh
 app/build
