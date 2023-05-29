@@ -54,19 +54,12 @@ public class MainActivity extends AppCompatActivity {
 
     onsetViewBinding();
     onsetViews();
-
-    showInfo();
-  }
-
-  @Override
-  protected void onStart() {
-    super.onStart();
     onsetObservers();
   }
 
   @Override
-  protected void onStop() {
-    super.onStop();
+  protected void onDestroy() {
+    super.onDestroy();
     viewModel.unregisterNetworkCallback();
     disposable.dispose();
   }
@@ -137,6 +130,18 @@ public class MainActivity extends AppCompatActivity {
         v -> {
           timePickerBottomSheet.show(getSupportFragmentManager(), null);
         });
+
+    Snackbar.make(binding.getRoot(), "Made with love by Akira Snow", Snackbar.LENGTH_SHORT)
+        .setAction(
+            "Follow",
+            v -> {
+              Intent intent =
+                  new Intent(
+                      Intent.ACTION_VIEW,
+                      Uri.parse("https://www.facebook.com/profile.php?id=100087796637987"));
+              startActivity(intent);
+            })
+        .show();
   }
 
   private void onsetObservers() {
@@ -153,19 +158,5 @@ public class MainActivity extends AppCompatActivity {
                 });
 
     viewModel.registerNetworkCallback();
-  }
-
-  private void showInfo() {
-    Snackbar.make(binding.getRoot(), "Made with love by Akira Snow", Snackbar.LENGTH_INDEFINITE)
-        .setAction(
-            "Follow",
-            v -> {
-              Intent intent =
-                  new Intent(
-                      Intent.ACTION_VIEW,
-                      Uri.parse("https://www.facebook.com/profile.php?id=100087796637987"));
-              startActivity(intent);
-            })
-        .show();
   }
 }
