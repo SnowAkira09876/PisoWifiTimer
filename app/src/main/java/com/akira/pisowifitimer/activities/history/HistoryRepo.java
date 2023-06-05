@@ -39,4 +39,12 @@ public class HistoryRepo {
   public Single<Integer> getTotalAmountBetween(String startDate, String endDate) {
     return room.getHistoryDAO().getTotalAmountBetween(startDate, endDate);
   }
+  
+  public Single<String> getStartDate() {
+    return room.getHistoryDAO().getStartDate();
+  }
+  
+  public Single<String> getEndDate() {
+    return room.getHistoryDAO().getEndDate();
+  }
 }

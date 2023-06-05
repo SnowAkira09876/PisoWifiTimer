@@ -1,7 +1,6 @@
 package com.akira.pisowifitimer.activities.history;
 
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.util.Pair;
@@ -11,7 +10,6 @@ import com.akira.pisowifitimer.databinding.ActivityHistoryBinding;
 import com.akira.pisowifitimer.recyclerviews.AdapterFactory;
 import com.akira.pisowifitimer.recyclerviews.adapters.HistoryAdapter;
 import com.akira.pisowifitimer.widgets.recyclerview.AkiraRecyclerView;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointBackward;
 import com.google.android.material.datepicker.MaterialDatePicker;
@@ -27,133 +25,155 @@ import javax.inject.Inject;
 
 @AndroidEntryPoint
 public class HistoryActivity extends AppCompatActivity {
-  private ActivityHistoryBinding binding;
-  private AkiraRecyclerView rv;
-  private HistoryAdapter adapter;
-  private HistoryViewModel viewModel;
-  private HistoryFactory factory;
-  private Disposable history, history_between, amount, amount_between;
-  private TextView emptyView;
-  private MaterialToolbar toolbar;
-  private final CompositeDisposable disposables = new CompositeDisposable();
+    private ActivityHistoryBinding binding;
+    private AkiraRecyclerView rv;
+    private HistoryAdapter adapter;
+    private HistoryViewModel viewModel;
+    private HistoryFactory factory;
+    private Disposable history,
+            history_between,
+            amount,
+            amount_between,
+            start_date,
+            end_date,
+            total_amount;
+    private TextView emptyView, tv_amount, tv_startDate, tv_endDate;
+    private final CompositeDisposable disposables = new CompositeDisposable();
 
-  @Inject AkiraRoom room;
+    @Inject AkiraRoom room;
 
-  @Override
-  protected void onCreate(Bundle saveInstanceState) {
-    super.onCreate(saveInstanceState);
-    binding = ActivityHistoryBinding.inflate(getLayoutInflater());
-    factory = new HistoryFactory(room);
-    viewModel = new ViewModelProvider(this, factory).get(HistoryViewModel.class);
+    @Override
+    protected void onCreate(Bundle saveInstanceState) {
+        super.onCreate(saveInstanceState);
+        binding = ActivityHistoryBinding.inflate(getLayoutInflater());
+        factory = new HistoryFactory(room);
+        viewModel = new ViewModelProvider(this, factory).get(HistoryViewModel.class);
 
-    adapter = AdapterFactory.getHistoryAdapter();
+        adapter = AdapterFactory.getHistoryAdapter();
 
-    onsetViewBinding();
-    onsetViews();
-    onsetObservers();
-  }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
-      case android.R.id.home:
-        onBackPressed();
-        return true;
+        onsetViewBinding();
+        onsetViews();
+        onsetObservers();
     }
-    return super.onOptionsItemSelected(item);
-  }
 
-  @Override
-  protected void onDestroy() {
-    super.onDestroy();
-    disposables.clear();
-  }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        disposables.clear();
+    }
 
-  private void onsetViewBinding() {
-    rv = binding.rv;
-    emptyView = binding.emptyView;
-    toolbar = binding.toolbar;
-  }
+    private void onsetViewBinding() {
+        rv = binding.rv;
+        emptyView = binding.emptyView;
+        tv_amount = binding.tvAmount;
+        tv_startDate = binding.tvStartDate;
+        tv_endDate = binding.tvEndDate;
+    }
 
-  private void onsetViews() {
-    setSupportActionBar(binding.toolbar);
-    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    private void onsetViews() {
 
-    setContentView(binding.getRoot());
-    rv.setAdapter(adapter);
-    rv.setEmptyView(emptyView);
+        setContentView(binding.getRoot());
+        rv.setAdapter(adapter);
+        rv.setEmptyView(emptyView);
 
-    binding.fab.setOnClickListener(v -> showDatePicker());
-  }
+        binding.fab.setOnClickListener(v -> showDatePicker());
+    }
 
-  private void onsetObservers() {
-    history =
-        viewModel
-            .getHistory()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                list -> {
-                  adapter.submitList(list);
+    private void onsetObservers() {
+        history =
+                viewModel
+                        .getHistory()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                list -> {
+                                    adapter.submitList(list);
+                                });
+
+        amount =
+                viewModel
+                        .getTotalAmount()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                a -> tv_amount.setText(String.format(Locale.US, "%s%d", "₱", a)),
+                                System.out::println);
+
+        start_date =
+                viewModel
+                        .getStartDate()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(date -> tv_startDate.setText(date), System.out::println);
+
+        end_date =
+                viewModel
+                        .getEndDate()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(date -> tv_endDate.setText(date), System.out::println);
+
+        disposables.add(amount);
+
+        disposables.add(history);
+
+        disposables.add(start_date);
+
+        disposables.add(end_date);
+    }
+
+    private void showDatePicker() {
+        CalendarConstraints constraints =
+                new CalendarConstraints.Builder()
+                        .setValidator(DateValidatorPointBackward.now())
+                        .build();
+
+        MaterialDatePicker<Pair<Long, Long>> datePicker =
+                MaterialDatePicker.Builder.dateRangePicker()
+                        .setTitleText("Pick a date range")
+                        .setCalendarConstraints(constraints)
+                        .build();
+
+        datePicker.addOnPositiveButtonClickListener(
+                selection -> {
+                    long startDate = selection.first;
+                    long endDate = selection.second;
+
+                    SimpleDateFormat dateFormat =
+                            new SimpleDateFormat("MMM dd yyyy", Locale.getDefault());
+                    String formattedStartDate = dateFormat.format(new Date(startDate));
+                    String formattedEndDate = dateFormat.format(new Date(endDate));
+
+                    history_between =
+                            viewModel
+                                    .getHistoryBetween(formattedStartDate, formattedEndDate)
+                                    .subscribeOn(Schedulers.io())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(
+                                            list -> {
+                                                adapter.submitList(list);
+                                            },
+                                            System.out::println);
+
+                    amount_between =
+                            viewModel
+                                    .getTotalAmountBetween(formattedStartDate, formattedEndDate)
+                                    .subscribeOn(Schedulers.io())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(
+                                            a ->
+                                                    tv_amount.setText(
+                                                            String.format(
+                                                                    Locale.US, "%s%d", "₱", a)),
+                                            System.out::println);
+
+                    disposables.add(amount_between);
+                    disposables.add(history_between);
+
+                    tv_startDate.setText(formattedStartDate);
+                    tv_endDate.setText(formattedEndDate);
                 });
 
-    amount =
-        viewModel
-            .getTotalAmount()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                a -> toolbar.setSubtitle(String.format(Locale.US, "%s%d %s", "₱", a, "pesos spent")),
-                System.out::println);
-
-    disposables.add(amount);
-
-    disposables.add(history);
-  }
-
-  private void showDatePicker() {
-    CalendarConstraints constraints =
-        new CalendarConstraints.Builder().setValidator(DateValidatorPointBackward.now()).build();
-
-    MaterialDatePicker<Pair<Long, Long>> datePicker =
-        MaterialDatePicker.Builder.dateRangePicker()
-            .setTitleText("Pick a date range")
-            .setCalendarConstraints(constraints)
-            .build();
-
-    datePicker.addOnPositiveButtonClickListener(
-        selection -> {
-          long startDate = selection.first;
-          long endDate = selection.second;
-
-          SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-          String formattedStartDate = dateFormat.format(new Date(startDate));
-          String formattedEndDate = dateFormat.format(new Date(endDate));
-
-          history_between =
-              viewModel
-                  .getHistoryBetween(formattedStartDate, formattedEndDate)
-                  .subscribeOn(Schedulers.io())
-                  .observeOn(AndroidSchedulers.mainThread())
-                  .subscribe(
-                      list -> {
-                        adapter.submitList(list);
-                      },
-                      System.out::println);
-
-          amount_between =
-              viewModel
-                  .getTotalAmountBetween(formattedStartDate, formattedEndDate)
-                  .subscribeOn(Schedulers.io())
-                  .observeOn(AndroidSchedulers.mainThread())
-                  .subscribe(
-                      a -> toolbar.setSubtitle(String.format(Locale.US,"%s%d %s", "₱", a, "pesos spent")),
-                      System.out::println);
-
-          disposables.add(amount_between);
-          disposables.add(history_between);
-        });
-
-    datePicker.show(getSupportFragmentManager(), "date_picker");
-  }
+        datePicker.show(getSupportFragmentManager(), "date_picker");
+    }
 }

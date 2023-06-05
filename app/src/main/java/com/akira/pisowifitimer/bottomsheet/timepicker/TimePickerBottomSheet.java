@@ -121,7 +121,7 @@ public class TimePickerBottomSheet extends BottomSheetDialogFragment {
           String second = String.valueOf((int) slider_second.getValue());
           String amount = String.valueOf((int) slider_amount.getValue());
 
-          SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+          SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd yyyy", Locale.getDefault());
           String currentDate = dateFormat.format(new Date());
           String formattedTime =
               String.format("%s hours, %s minutes, %s seconds", hour, minute, second);

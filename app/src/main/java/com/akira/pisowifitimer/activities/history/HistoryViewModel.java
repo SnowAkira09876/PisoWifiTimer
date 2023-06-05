@@ -28,4 +28,12 @@ public class HistoryViewModel extends ViewModel {
   public Single<Integer> getTotalAmount() {
     return repo.getTotalAmount();
   }
+  
+  public Single<String> getStartDate() {
+    return repo.getStartDate();
+  }
+  
+  public Single<String> getEndDate() {
+    return repo.getEndDate();
+  }
 }
