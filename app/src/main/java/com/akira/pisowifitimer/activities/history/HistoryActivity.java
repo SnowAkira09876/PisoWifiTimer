@@ -7,8 +7,8 @@ import androidx.core.util.Pair;
 import androidx.lifecycle.ViewModelProvider;
 import com.akira.pisowifitimer.data.room.AkiraRoom;
 import com.akira.pisowifitimer.databinding.ActivityHistoryBinding;
-import com.akira.pisowifitimer.recyclerviews.AdapterFactory;
 import com.akira.pisowifitimer.recyclerviews.adapters.HistoryAdapter;
+import com.akira.pisowifitimer.recyclerviews.diffs.HistoryDiff;
 import com.akira.pisowifitimer.widgets.recyclerview.AkiraRecyclerView;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointBackward;
@@ -49,7 +49,7 @@ public class HistoryActivity extends AppCompatActivity {
         factory = new HistoryFactory(room);
         viewModel = new ViewModelProvider(this, factory).get(HistoryViewModel.class);
 
-        adapter = AdapterFactory.getHistoryAdapter();
+        adapter = new HistoryAdapter(new HistoryDiff());
 
         onsetViewBinding();
         onsetViews();

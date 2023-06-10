@@ -4,7 +4,8 @@ import android.app.Application;
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
 import android.os.Build;
-import com.akira.pisowifitimer.pojos.TimeItemModel;
+import com.akira.pisowifitimer.pojos.TimeEvent;
+import com.akira.pisowifitimer.pojos.TimeIndex;
 import dagger.hilt.android.HiltAndroidApp;
 import org.greenrobot.eventbus.EventBus;
 
@@ -22,7 +23,7 @@ public class StartApplication extends Application {
     EventBus.builder()
         .logNoSubscriberMessages(false)
         .sendNoSubscriberEvent(false)
-        .addIndex(new TimeItemModel())
+		.addIndex(new TimeIndex())
         .installDefaultEventBus();
   }
 
