@@ -1,11 +1,11 @@
-package com.akira.pisowifitimer.feature_home.presentation
+package com.akira.pisowifitimer.feature_webview.presentation
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.akira.pisowifitimer.core.util.Resource
-import com.akira.pisowifitimer.feature_home.domain.repository.HomeRepository
+import com.akira.pisowifitimer.feature_webview.domain.repository.WebRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -13,9 +13,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val repository: HomeRepository) : ViewModel() {
-    private val _wifi = mutableStateOf(HomeState())
-    val wifi: State<HomeState> = _wifi
+class HomeViewModel @Inject constructor(private val repository: WebRepository) : ViewModel() {
+    private val _wifi = mutableStateOf(WebState())
+    val wifi: State<WebState> = _wifi
 
     private val _eventFlow = MutableSharedFlow<UIEvent>()
     val eventFlow = _eventFlow.asSharedFlow()

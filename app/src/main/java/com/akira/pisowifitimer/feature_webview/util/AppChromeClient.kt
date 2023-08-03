@@ -1,4 +1,4 @@
-package com.akira.pisowifitimer.feature_home.util
+package com.akira.pisowifitimer.feature_webview.util
 
 import android.webkit.JsResult
 import android.webkit.WebChromeClient

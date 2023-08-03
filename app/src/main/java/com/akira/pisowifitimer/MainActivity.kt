@@ -14,9 +14,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.work.WorkManager
 import com.akira.pisowifitimer.core.util.Screen
 import com.akira.pisowifitimer.feature_history.presentation.HistoryScreen
-import com.akira.pisowifitimer.feature_home.presentation.HomeScreen
-import com.akira.pisowifitimer.feature_home.util.AppChromeClient
-import com.akira.pisowifitimer.feature_home.util.AppWebClient
+import com.akira.pisowifitimer.feature_webview.presentation.HomeScreen
+import com.akira.pisowifitimer.feature_webview.util.AppChromeClient
+import com.akira.pisowifitimer.feature_webview.util.AppWebClient
 import com.akira.pisowifitimer.ui.theme.PisoWifiTimerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject

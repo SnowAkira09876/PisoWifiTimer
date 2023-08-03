@@ -1,4 +1,4 @@
-package com.akira.pisowifitimer.feature_home.data.local
+package com.akira.pisowifitimer.feature_webview.data.local
 
 import android.net.ConnectivityManager
 import android.net.LinkProperties

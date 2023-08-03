@@ -8,8 +8,8 @@ import android.net.NetworkRequest
 import androidx.room.Room
 import androidx.work.WorkManager
 import com.akira.pisowifitimer.core.data.local.AppRoomDatabase
-import com.akira.pisowifitimer.feature_home.util.AppChromeClient
-import com.akira.pisowifitimer.feature_home.util.AppWebClient
+import com.akira.pisowifitimer.feature_webview.util.AppChromeClient
+import com.akira.pisowifitimer.feature_webview.util.AppWebClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

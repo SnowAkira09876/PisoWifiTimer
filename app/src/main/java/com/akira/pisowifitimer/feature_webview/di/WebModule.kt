@@ -1,10 +1,10 @@
-package com.akira.pisowifitimer.feature_home.di
+package com.akira.pisowifitimer.feature_webview.di
 
 import android.net.ConnectivityManager
 import android.net.NetworkRequest
-import com.akira.pisowifitimer.feature_home.data.local.WifiApi
-import com.akira.pisowifitimer.feature_home.data.repository.HomeRepositoryImpl
-import com.akira.pisowifitimer.feature_home.domain.repository.HomeRepository
+import com.akira.pisowifitimer.feature_webview.data.local.WifiApi
+import com.akira.pisowifitimer.feature_webview.data.repository.WebRepositoryImpl
+import com.akira.pisowifitimer.feature_webview.domain.repository.WebRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,7 +12,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-object HomeModule {
+object WebModule {
     @Provides
     fun provideWifiApi(
         connectivityManager: ConnectivityManager,
@@ -20,5 +20,5 @@ object HomeModule {
     ): WifiApi = WifiApi(connectivityManager, networkRequest)
 
     @Provides
-    fun provideHomeRepository(wifiApi: WifiApi): HomeRepository = HomeRepositoryImpl(wifiApi)
+    fun provideHomeRepository(wifiApi: WifiApi): WebRepository = WebRepositoryImpl(wifiApi)
 }

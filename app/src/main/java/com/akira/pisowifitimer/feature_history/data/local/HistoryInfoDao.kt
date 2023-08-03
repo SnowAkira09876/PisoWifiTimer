@@ -17,7 +17,7 @@ interface HistoryInfoDao {
     suspend fun getTotalAmountBetween(startDate: String, endDate: String): Int
 
     @Query("SELECT * FROM timeinfo WHERE date BETWEEN :startDate AND :endDate")
-    fun getHistoryBetween(startDate: String?, endDate: String?): Flow<List<TimeInfo>>
+    fun getHistoryBetween(startDate: String, endDate: String): Flow<List<TimeInfo>>
 
     @Query("SELECT date FROM timeinfo ORDER BY id ASC LIMIT 1")
     suspend fun getStartDate(): String

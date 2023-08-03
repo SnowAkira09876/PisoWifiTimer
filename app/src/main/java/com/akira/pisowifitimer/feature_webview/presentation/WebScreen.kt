@@ -1,4 +1,4 @@
-package com.akira.pisowifitimer.feature_home.presentation
+package com.akira.pisowifitimer.feature_webview.presentation
 
 import android.annotation.SuppressLint
 import android.webkit.WebChromeClient

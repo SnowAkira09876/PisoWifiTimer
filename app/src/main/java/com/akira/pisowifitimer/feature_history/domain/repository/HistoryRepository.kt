@@ -5,4 +5,16 @@ import kotlinx.coroutines.flow.Flow
 
 interface HistoryRepository {
     fun getHistory(): Flow<List<TimeInfo>>
+
+    fun getHistoryBetween(startDate: String, endDate: String): Flow<List<TimeInfo>>
+
+    suspend fun getTotalAmount(): Int
+
+    suspend fun getTotalAmountBetween(startDate: String, endDate: String): Int
+
+    suspend fun getStartDate(): String
+
+    suspend fun getEndDate(): String
+
+    suspend fun getTotalTime(): Int
 }
