@@ -44,7 +44,8 @@ import java.util.Locale
 fun TimerBottomSheet(
     navController: NavController,
     workManager: WorkManager,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    dismiss: () -> Unit
 ) {
     ConstraintLayout(modifier = modifier) {
         val (title, alarm, history, stop, sliders) = createRefs()
@@ -180,6 +181,18 @@ fun TimerBottomSheet(
                     .fillMaxWidth()
             ) {
                 Text(text = "Start")
+            }
+
+            Button(
+                onClick = {
+                    dismiss.invoke()
+                },
+                modifier = Modifier
+                    .padding(top = 5.dp)
+                    .fillMaxWidth()
+            )
+            {
+                Text(text = "Dismiss")
             }
         }
     }

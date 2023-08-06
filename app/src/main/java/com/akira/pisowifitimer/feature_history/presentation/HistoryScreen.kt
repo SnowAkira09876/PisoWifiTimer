@@ -49,7 +49,12 @@ fun HistoryScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(timeInfos.size) {
-                    HistoryItem(timeInfo = timeInfos[it], modifier = Modifier.fillMaxWidth())
+                    HistoryItem(
+                        timeInfo = timeInfos[it],
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    )
                 }
             }
         }

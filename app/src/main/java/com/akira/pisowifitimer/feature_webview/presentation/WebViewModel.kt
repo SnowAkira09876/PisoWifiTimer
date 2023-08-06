@@ -17,8 +17,8 @@ class HomeViewModel @Inject constructor(private val repository: WebRepository) :
     private val _wifi = mutableStateOf(WebState())
     val wifi: State<WebState> = _wifi
 
-    private val _eventFlow = MutableSharedFlow<UIEvent>()
-    val eventFlow = _eventFlow.asSharedFlow()
+    private val _uiState = MutableSharedFlow<UIState>()
+    val uiState = _uiState.asSharedFlow()
 
     init {
         getWifiGateWay()
@@ -38,8 +38,8 @@ class HomeViewModel @Inject constructor(private val repository: WebRepository) :
                         _wifi.value = wifi.value.copy(
                             isConnected = false
                         )
-                        _eventFlow.emit(
-                            UIEvent.ShowSnackbar(
+                        _uiState.emit(
+                            UIState.ShowSnackbar(
                                 message = "Wi-Fi not connected"
                             )
                         )
@@ -54,6 +54,6 @@ class HomeViewModel @Inject constructor(private val repository: WebRepository) :
 }
 
 
-sealed class UIEvent {
-    data class ShowSnackbar(val message: String) : UIEvent()
+sealed class UIState {
+    data class ShowSnackbar(val message: String) : UIState()
 }
